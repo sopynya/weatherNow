@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/images/favicon-32x32.png">
+  <link rel="stylesheet" href="./index.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet"> 
+  <title>Frontend Mentor | Weather app</title>
+  <style>
+    #attribution { font-size: 11px; text-align: center; display: none;}
+    #attribution a { color: hsl(228, 45%, 44%); }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="./assets/images/logo.svg">
+    <div style="position: relative;">
+      <div id="units" onclick="toggleOptions()">
+        <img src="./assets/images/icon-units.svg">
+        <p>Units</p>
+        <img src="./assets/images/icon-dropdown.svg">
+      </div>
+      <div id="options">
+        <h2>Switch to Imperial</h2>
+        <h3>Temperature</h3>
+        <p id="unitC" onclick="celsius(true);">Celsius (°C)</p>
+        <p id="unitF" onclick="celsius(false)">Fahrenheit (°F)</p>
+        <hr>
+        <h3>Wind Speed</h3>
+        <p onclick="km(true)" id="unitKm">km/h</p>
+        <p onclick="km(false)" id="unitMph">mph</p>
+        <hr>
+        <h3>Precipitation</h3>
+        <p id="unitMm" onclick="mm(true)">Millimeters (mm)</p>
+        <p id="unitIn" onclick="mm(false)">Inches (in)</p>
+      </div>
+    </div>
+  </header>
+
+  <h1 id="heading">How's the sky looking today?</h1>
+
+  <section id="search">
+    <div style="position: relative;">
+      <div id="searchinput" tabindex="0">
+        <img src="./assets/images/icon-search.svg">
+        <input id="searchPlace" type="search" placeholder="Search for a place...">
+      </div>
+      <div id="suggestion">
+       
+      </div>
+    </div>
+    <button onclick="getData()">Search</button>
+  </section>
+
+  <section id="nothingFound">
+    <h1>No search result found!</h1>
+  </section>
+  <section id="fail">
+    <img src="./assets/images/icon-error.svg">
+    <h1>Something went wrong</h1>
+    <p>We couldn’t connect to the server (API error). Please try again in a few moments.</p>
+    <button id="retry"><img src="./assets/images/icon-retry.svg"> Retry</button>
+  </section>
+
+  <section id="content">
+
+    <section id="info">
+
+      <div id="place">
+        <div id="locationName">
+          <h2 id="country"></h2>
+          <p id="today"> </p>
+        </div>
+        <div id="temperature">
+          <img id="currentWeatherIcon">
+          <h2 id="currentTemperature"></h2>
+        </div>
+
+        <div id="loading">
+          <p>Loading...</p>
+        </div>
+      </div>
+
+      <section id="information">
+        <div class="info">
+          <p>Feels Like</p>
+          <h3 id="feelsLike">–</h3>
+        </div>
+        <div class="info">
+          <p>Humidity</p>
+          <h3 id="humidity">–</h3>
+        </div>
+        <div class="info">
+          <p>Wind</p>
+          <h3 id="km">–</h3>
+        </div>
+        <div class="info">
+          <p>Precipitation</p>
+          <h3 id="precipitation">–</h3>
+        </div>
+      </section>
+
+      <section id="week">
+        <p>Daily forecast</p>
+        <div id="weekDays">
+
+          <div class="weekDays">
+            <p class="dayName"></p>
+            <img class="dayIcon">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p class="maxTemp"></p>
+              <p class="minTemp"></p>
+            </div>
+          </div>
+
+          <div class="weekDays">
+            <p class="dayName"></p>
+            <img class="dayIcon">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p class="maxTemp"></p>
+              <p class="minTemp"></p>
+            </div>
+          </div>
+
+          <div class="weekDays">
+            <p class="dayName"></p>
+            <img class="dayIcon">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p class="maxTemp"></p>
+              <p class="minTemp"></p>
+            </div>
+          </div>
+
+          <div class="weekDays">
+            <p class="dayName"></p>
+            <img class="dayIcon">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p class="maxTemp"></p>
+              <p class="minTemp"></p>
+            </div>
+          </div>
+
+          <div class="weekDays">
+            <p class="dayName"></p>
+            <img class="dayIcon">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p class="maxTemp"></p>
+              <p class="minTemp"></p>
+            </div>
+          </div>
+
+          <div class="weekDays">
+            <p class="dayName"></p>
+            <img class="dayIcon">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p class="maxTemp"></p>
+              <p class="minTemp"></p>
+            </div>
+          </div>
+
+          <div class="weekDays">
+            <p class="dayName"></p>
+            <img class="dayIcon">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <p class="maxTemp"></p>
+              <p class="minTemp"></p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </section>
+
+    <div id="time">
+      <div id="hourly">
+        <h2>Hourly forecast</h2>
+        <p id="selectedDay" onclick="weeksDisplay()">– <img src="./assets/images/icon-dropdown.svg"></p>
+        <div id="hourlyWeek">
+          <p data-day="Monday">Monday</p>
+          <p data-day="Tuesday">Tuesday</p>
+          <p data-day="Wednesday">Wednesday</p>
+          <p data-day="Thursday">Thursday</p>
+          <p data-day="Friday">Friday</p>
+          <p data-day="Saturday">Saturday</p>
+          <p data-day="Sunday">Sunday</p>
+        </div>
+      </div>
+
+      <div id="times">
+        
+      </div>
+    </div>
+  </section>
+
+  <div id="attribution">
+    Challenge by <a href="https://www.frontendmentor.io?ref=challenge">Frontend Mentor</a>. 
+    Coded by <a href="#">Soso</a>.
+  </div>
+
+  <script src="./index.js"></script>
+</body>
+</html>
