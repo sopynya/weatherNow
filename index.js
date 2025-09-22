@@ -221,89 +221,103 @@ function getWeatherImage(code) {
   if (code >= 95 && code <= 99) return storm;
   return sunny;
 }
-
-function updateWeatherData(hourIndex) {
-  if (!weatherData || hourIndex === undefined || hourIndex < 0) return;
-
-  const temp = weatherData.hourly.temperature_2m[hourIndex];
-  const apparentTemp = weatherData.hourly.apparent_temperature[hourIndex];
-  const code = weatherData.hourly.weathercode[hourIndex];
-  const humidity = weatherData.hourly.relative_humidity_2m[hourIndex];
-  const windSpeed = weatherData.hourly.windspeed_10m[hourIndex];
-  const precipitation = weatherData.hourly.precipitation[hourIndex];
-
-  document.getElementById("currentWeatherIcon").src = getWeatherImage(code);
-  document.getElementById("currentTemperature").textContent =
-    isCelsius ? `${temp.toFixed(0)}°` : `${((temp*9)/5+32).toFixed(0)}°`;
-  document.getElementById("feelsLike").textContent =
-    isCelsius ? `${apparentTemp.toFixed(0)}°` : `${((apparentTemp*9)/5+32).toFixed(0)}°`;
-  document.getElementById("humidity").textContent = `${humidity}%`;
-  document.getElementById("km").textContent = isKm ?
-    `${windSpeed.toFixed(0)} km/h` :
-    `${(windSpeed * 0.621371).toFixed(0)} mph`;
-  document.getElementById("precipitation").textContent = isMm ?
-    `${precipitation.toFixed(0)} mm` :
-    `${(precipitation / 25.4).toFixed(1)} in`;
-}
-
 function updateMainWeatherForDay(dayName) {
-  if (!weatherData) return;
+    if (!weatherData) return;
 
-  const dayIndex = weatherData.daily.time.findIndex(d => 
-    new Date(d).toLocaleDateString("en-US", { weekday: "long" }) === dayName
-  );
-  if (dayIndex === -1) return;
+    const dayIndex = weatherData.daily.time.findIndex(d =>
+        new Date(d).toLocaleDateString("en-US",{ weekday:"long" }) === dayName
+    );
+    if (dayIndex === -1) return;
 
-  const firstHourIndex = weatherData.hourly.time.findIndex(h => 
-    new Date(h).toDateString() === new Date(weatherData.daily.time[dayIndex]).toDateString()
-  );
+    const dayDate = new Date(weatherData.daily.time[dayIndex]);
 
-  updateWeatherData(firstHourIndex);
+    // Encontrar o horário mais próximo do momento atual
+    const now = new Date();
+    const hourlyTimes = weatherData.hourly.time.map(h => new Date(h));
+    let closestHourIndex = hourlyTimes.findIndex(h => 
+        h.toDateString() === dayDate.toDateString() && h >= now
+    );
+    if (closestHourIndex === -1) {
+        // Se não houver horário futuro no dia, pegar o último horário do dia
+        closestHourIndex = hourlyTimes.reverse().findIndex(h => 
+            h.toDateString() === dayDate.toDateString()
+        );
+        if (closestHourIndex !== -1) {
+            closestHourIndex = hourlyTimes.length - 1 - closestHourIndex; // ajustar índice depois de reverse
+        } else return;
+    }
+
+    const temp = weatherData.hourly.temperature_2m[closestHourIndex];
+    const feelsLikeTemp = weatherData.hourly.apparent_temperature[closestHourIndex];
+    const code = weatherData.hourly.weathercode[closestHourIndex];
+
+    document.getElementById("currentWeatherIcon").src = getWeatherImage(code);
+    document.getElementById("currentTemperature").textContent = isCelsius
+        ? `${temp.toFixed(0)}°`
+        : `${((temp*9)/5+32).toFixed(0)}°`;
+    document.getElementById("feelsLike").textContent = isCelsius
+        ? `${feelsLikeTemp.toFixed(0)}°`
+        : `${((feelsLikeTemp*9)/5+32).toFixed(0)}°`;
+
+    document.getElementById("today").textContent = now.toLocaleString("en-US", {
+        weekday:"long", month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"numeric"
+    });
 }
 
 function renderHourlyForecast(dayName) {
-  if (!weatherData) return;
+    if (!weatherData) return;
+    const container = document.getElementById("times");
+    container.innerHTML = "";
 
-  const container = document.getElementById("times");
-  container.innerHTML = "";
+    const dayDate = weatherData.daily.time.find(d =>
+        new Date(d).toLocaleDateString("en-US",{ weekday:"long" }) === dayName
+    );
+    if (!dayDate) return;
 
-  const dayDate = weatherData.daily.time.find(d =>
-    new Date(d).toLocaleDateString("en-US", { weekday: "long" }) === dayName
-  );
-  if (!dayDate) return;
+    const now = new Date();
+    const hours = weatherData.hourly.time;
+    const temps = weatherData.hourly.temperature_2m;
+    const feelsLikeTemps = weatherData.hourly.apparent_temperature;
+    const codes = weatherData.hourly.weathercode;
 
-  const hours = weatherData.hourly.time;
-  const temps = weatherData.hourly.apparent_temperature;
-  const codes = weatherData.hourly.weathercode;
+    hours.forEach((h, i) => {
+        const hourDate = new Date(h);
+        if (hourDate.toDateString() !== new Date(dayDate).toDateString() || hourDate < now) return;
 
-  hours.forEach((h, i) => {
-    const date = new Date(h);
-    if (date.toDateString() !== new Date(dayDate).toDateString()) return;
+        const div = document.createElement("div");
+        div.className = "hour";
 
-    const div = document.createElement("div");
-    div.className = "hour";
+        let hour = hourDate.getHours();
+        const ampm = hour >= 12 ? "pm" : "am";
+        hour = hour % 12 || 12;
 
-    let hour = date.getHours();
-    const ampm = hour >= 12 ? "pm" : "am";
-    hour = hour % 12 || 12;
+        const icon = getWeatherImage(codes[i]);
+        div.innerHTML = `
+            <p><img src="${icon}" alt=""> ${hour}${ampm}</p>
+            <p style="font-size:16px;">${isCelsius ? temps[i].toFixed(0)+"°C" : ((temps[i]*9)/5+32).toFixed(0)+"°F"}</p>
+        `;
 
-    const icon = getWeatherImage(codes[i]);
-    div.innerHTML = `
-      <p><img src="${icon}" alt=""> ${hour}${ampm}</p>
-      <p style="font-size:16px;">${isCelsius ? temps[i].toFixed(0)+"°C" : ((temps[i]*9)/5+32).toFixed(0)+"°F"}</p>
-    `;
+        div.addEventListener("click", () => {
+            container.querySelectorAll(".hour.selected").forEach(e => e.classList.remove("selected"));
+            div.classList.add("selected");
 
-    div.addEventListener("click", () => {
-      container.querySelectorAll(".hour.selected").forEach(e => e.classList.remove("selected"));
-      div.classList.add("selected");
-      updateWeatherData(i);
-      document.getElementById("today").textContent = date.toLocaleDateString("en-US", {
-        weekday:"long", month:"short", day:"numeric", year:"numeric"
-      });
+            document.getElementById("currentTemperature").textContent = isCelsius
+                ? `${temps[i].toFixed(0)}°`
+                : `${((temps[i]*9)/5+32).toFixed(0)}°`;
+
+            document.getElementById("feelsLike").textContent = isCelsius
+                ? `${feelsLikeTemps[i].toFixed(0)}°`
+                : `${((feelsLikeTemps[i]*9)/5+32).toFixed(0)}°`;
+
+            document.getElementById("currentWeatherIcon").src = icon;
+
+            document.getElementById("today").textContent = hourDate.toLocaleString("en-US", {
+                weekday:"long", month:"short", day:"numeric", year:"numeric", hour:"numeric", minute:"numeric"
+            });
+        });
+
+        container.appendChild(div);
     });
-
-    container.appendChild(div);
-  });
 }
 
 function selectCurrentDay() {
